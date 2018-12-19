@@ -101,7 +101,7 @@ function animaster() {
             setTimeout(scale(element, 500, 1.0), 500);
             timerId = setTimeout(tick, 1000);
         };
-        let timerId = setTimeout(tick, 0);
+        let timerId = setTimeout(tick, 1000);
     }
 
     return {
