@@ -46,10 +46,15 @@ function addListeners() {
             scale.stop();
         });
 
+    const moveAndHideBlock = document.getElementById('moveAndHideBlock');
+    let moveAndHide = animaster().moveAndHide(moveAndHideBlock, 2000);
     document.getElementById('moveAndHidePlay')
-        .addEventListener('click', function () {
-            const block = document.getElementById('moveAndHideBlock');
-            animaster().moveAndHide(block, 2000);
+        .addEventListener('click', function() {
+            moveAndHide.execute();
+        });
+    document.getElementById('moveAndHideStop')
+        .addEventListener('click', function() {
+           moveAndHide.stop();
         });
 
     document.getElementById('showAndHidePlay')
@@ -145,8 +150,18 @@ function animaster() {
     }
 
     function moveAndHide(element, duration) {
-        move(element, duration * 0.4, {x: 100, y: 20});
-        setTimeout(() => fadeOut(element, duration * 0.6), duration * 0.4);
+        let timerID;
+        return {
+          execute: function() {
+              move(element, duration * 0.4, {x: 100, y: 20}).execute();
+              timerID = setTimeout(() => fadeOut(element, duration * 0.6).execute(), duration * 0.4);
+          },
+          stop: function() {
+              clearTimeout(timerID);
+              move(element).stop();
+              fadeOut(element).stop();
+          },
+        };
     }
 
     function fadeOut(element, duration) {
@@ -176,16 +191,14 @@ function animaster() {
         return {
             execute: function() {
                 const tick = () => {
-                    scale(element, 500, 1.4);
-                    setTimeout(() => scale(element, 500, 1.0), 500);
+                    scale(element, 500, 1.4).execute();
+                    setTimeout(() => scale(element, 500, 1.0).execute(), 500);
                     timerID = setTimeout(tick, 1000);
-                    console.log(timerID);
                 };
                     timerID = setTimeout(tick, 0);
             },
 
             stop: function() {
-                console.log(timerID);
                 clearTimeout(timerID);
             },
         }
