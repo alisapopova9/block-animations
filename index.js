@@ -182,8 +182,8 @@ function animaster() {
         };
     }
     function showAndHide(element, duration) {
-        fadeIn(element, duration * 1/3);
-        setTimeout(() => fadeOut(element, duration * 1/3), duration * 2/3);
+        fadeIn(element, duration * 1/3).execute();
+        setTimeout(() => fadeOut(element, duration * 1/3).execute(), duration * 2/3);
     }
 
     function heartBeating(element) {
