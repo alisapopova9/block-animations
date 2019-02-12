@@ -160,12 +160,14 @@ function animaster() {
             if (stepsTmp.length) {
                 currentStep = stepsTmp.shift();
                 executeMethod(element, currentStep);
+                // предполагаю, что проблема в этом timeout'е
                 setTimeout(() => executeStep(), currentStep.duration);
             }
             else return;
         }
 
-        setTimeout(() => executeStep(), 0);
+        executeStep();
+        // setTimeout(() => executeStep(), 0);
     }
 
     function moveAndHide(element, duration) {
@@ -259,4 +261,4 @@ const customAnimation = animaster()
     .addMove(200, {x: 0, y: 0})
     .addScale(800, 1);
 customAnimation.play(document.getElementById('customAnimationBlock'));
-// customAnimation.play(document.getElementById('customAnimationBlock1'));
+customAnimation.play(document.getElementById('customAnimationBlock1'));
