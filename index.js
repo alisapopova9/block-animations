@@ -97,7 +97,7 @@ function getTransform(translation, ratio) {
 }
 
 function animaster() {
-    let _steps = [], _elementState = [], _timerID, _wasStopped = false;
+    let _steps = [], _elementState = [];
 
     function addMove(duration, translation) {
         _steps.push({
@@ -178,17 +178,18 @@ function animaster() {
     }
 
     function play(element, isCycled) {
+        let _timerID, _wasStopped = false;
         function executeStep() {
             // let stepsTmp = _steps;
             let currentStep;
-            if (_steps.length && !this._wasStopped) {
+            if (_steps.length && !_wasStopped) {
                 currentStep = _steps.shift();
                 if (isCycled) {
                     _steps.push(currentStep);
                 }
                 executeMethod(element, currentStep);
-                this._timerID = setTimeout(() => executeStep(), currentStep.duration);
-                console.log(this._timerID);
+                _timerID = setTimeout(() => executeStep(), currentStep.duration);
+                console.log(_timerID);
             }
             else return;
         }
@@ -215,22 +216,21 @@ function animaster() {
             _steps = [];
         }
         function resetMoveAndHide() {
-            clearTimeout(this._timerID);
-            clearSteps();
+            clearTimeout(_timerID);
             resetMove();
             resetFadeOut();
         }
         function resetShowAndHide() {
-            clearTimeout(this._timerID);
-            clearSteps();
+            clearTimeout(_timerID);
             resetFadeIn();
         }
 
-        executeStep();
-        // _timerID = setTimeout(() => executeStep(), 0);
+        // executeStep();
+        _timerID = setTimeout(() => executeStep(), 0);
 
         function reset(from) {
-            this._wasStopped = true;
+            _wasStopped = true;
+            console.log(_timerID);
             resetTransitionDuration();
             switch (from) {
                 case 'fadeOut':
@@ -255,14 +255,14 @@ function animaster() {
             return this;
         }
         function stop() {
-            this._wasStopped = true;
-            clearTimeout(this._timerID);
-            clearSteps();
+            _wasStopped = true;
+            console.log(_timerID);
+            clearTimeout(_timerID);
             return this;
         }
         return {
             reset,
-            stop
+            stop,
         }
     }
 
