@@ -1,17 +1,31 @@
 addListeners();
 
 function addListeners() {
-    const customAnimationBlock = document.getElementById('customAnimationBlock');
-    document.getElementById('customAnimationPlay')
-        .addEventListener('click', function() {
-            customAnimation.play(customAnimationBlock);
-        });
+    const customAnimation = animaster()
+        .addMove(1000, {x: 40, y: 40})
+        .addScale(800, 1.3)
+        .addMove(200, {x: 80, y: 0})
+        .addScale(800, 1)
+        .addMove(200, {x: 40, y: -40})
+        .addScale(800, 0.7)
+        .addMove(200, {x: 0, y: 0})
+        .addScale(800, 1)
+        .buildHandler();
+    const customAnimationBlock = document.getElementById('customAnimationBlock')
+        .addEventListener('click', customAnimation);
 
-    const customAnimationBlock1 = document.getElementById('customAnimationBlock1');
-    document.getElementById('customAnimationPlay1')
-        .addEventListener('click', function() {
-            customAnimationNew.play(customAnimationBlock1);
-        });
+    const customAnimationNew = animaster()
+        .addMove(1000, {x: 40, y: 40})
+        .addScale(800, 1.3)
+        .addMove(200, {x: 80, y: 0})
+        .addScale(800, 1)
+        .addMove(200, {x: 40, y: -40})
+        .addScale(800, 0.7)
+        .addMove(200, {x: 0, y: 0})
+        .addScale(800, 1)
+        .buildHandler();
+    const customAnimationBlock1 = document.getElementById('customAnimationBlock1')
+        .addEventListener('click', customAnimationNew);
 
     const fadeInBlock = document.getElementById('fadeInBlock');
     document.getElementById('fadeInPlay')
@@ -53,35 +67,37 @@ function addListeners() {
             animaster().play(scaleBlock).reset('scale');
         });
 
+    let mahContext;
     const moveAndHideBlock = document.getElementById('moveAndHideBlock');
     document.getElementById('moveAndHidePlay')
         .addEventListener('click', function() {
-            animaster().moveAndHide(moveAndHideBlock, 2000);
+            mahContext = animaster().moveAndHide(moveAndHideBlock, 2000);
         });
     document.getElementById('moveAndHideStop')
         .addEventListener('click', function() {
-           animaster().play(moveAndHideBlock).reset('moveAndHide');
+           mahContext.reset("moveAndHide");
         });
 
     const showAndHideBlock = document.getElementById('showAndHideBlock');
+    let sahContext;
     document.getElementById('showAndHidePlay')
         .addEventListener('click', function () {
-            animaster().showAndHide(showAndHideBlock, 2000);
+            sahContext = animaster().showAndHide(showAndHideBlock, 2000);
         });
     document.getElementById('showAndHideStop')
         .addEventListener('click', function () {
-           animaster().play(showAndHideBlock).reset('showAndHide');
+           sahContext.reset("showAndHide");
         });
 
     const hbBlock = document.getElementById('heartBeatingBlock');
+    let hbContext;
     document.getElementById('heartBeatingPlay')
         .addEventListener('click', function () {
-            animaster().heartBeating(hbBlock);
+            hbContext = animaster().heartBeating(hbBlock);
         });
-
     document.getElementById('heartBeatingStop')
         .addEventListener('click', function () {
-           animaster().play(hbBlock).stop();
+            hbContext.stop();
         });
 }
 
@@ -97,7 +113,7 @@ function getTransform(translation, ratio) {
 }
 
 function animaster() {
-    let _steps = [], _elementState = [];
+    let _steps = [], _elementState = [], _handlerContext = null;
 
     function addMove(duration, translation) {
         _steps.push({
@@ -179,20 +195,22 @@ function animaster() {
 
     function play(element, isCycled) {
         let _timerID, _wasStopped = false;
+        let stepsTmp = _steps;
         function executeStep() {
-            // let stepsTmp = _steps;
             let currentStep;
-            if (_steps.length && !_wasStopped) {
-                currentStep = _steps.shift();
+            if (stepsTmp.length && !_wasStopped) {
+                currentStep = stepsTmp.shift();
                 if (isCycled) {
-                    _steps.push(currentStep);
+                    stepsTmp.push(currentStep);
                 }
                 executeMethod(element, currentStep);
                 _timerID = setTimeout(() => executeStep(), currentStep.duration);
-                console.log(_timerID);
             }
             else return;
         }
+
+        _timerID = setTimeout(() => executeStep(), 0);
+        
         function resetTransitionDuration() {
             element.style.transitionDuration = `0ms`;
         }
@@ -225,12 +243,8 @@ function animaster() {
             resetFadeIn();
         }
 
-        // executeStep();
-        _timerID = setTimeout(() => executeStep(), 0);
-
         function reset(from) {
             _wasStopped = true;
-            console.log(_timerID);
             resetTransitionDuration();
             switch (from) {
                 case 'fadeOut':
@@ -256,7 +270,6 @@ function animaster() {
         }
         function stop() {
             _wasStopped = true;
-            console.log(_timerID);
             clearTimeout(_timerID);
             return this;
         }
@@ -267,8 +280,10 @@ function animaster() {
     }
 
     function heartBeating(element) {
-        this.addScale(500, 1.4)
-            .addScale(500, 1.0).play(element, true);
+        return this
+            .addScale(500, 1.4)
+            .addScale(500, 1.0)
+            .play(element, true);
     }
 
     /**
@@ -299,14 +314,36 @@ function animaster() {
     }
 
     function showAndHide(element, duration) {
-        this.addFadeIn(duration * 1/3)
+        return this
+            .addFadeIn(duration * 1/3)
             .addDelay(duration * 2/3)
-            .addFadeOut(duration * 1/3).play(element);
+            .addFadeOut(duration * 1/3)
+            .play(element);
     }
 
     function moveAndHide(element, duration) {
-        this.addMove(duration * 0.6, {x: 100, y: 20})
-            .addFadeOut(duration * 0.4).play(element);
+        return this
+            .addMove(duration * 0.6, {x: 100, y: 20})
+            .addFadeOut(duration * 0.4)
+            .play(element);
+    }
+    
+    function buildHandler() {
+        let _timerID;
+        let stepsTmp = _steps;
+        function executeStep() {
+            let currentStep;
+            if (_handlerContext === null)
+                _handlerContext = this;
+            if (stepsTmp.length) {
+                currentStep = stepsTmp.shift();
+                executeMethod(_handlerContext, currentStep);
+                _timerID = setTimeout(() => executeStep(), currentStep.duration);
+            }
+            else return;
+        }
+
+        return executeStep;
     }
 
     return {
@@ -323,26 +360,6 @@ function animaster() {
         addFadeOut,
         addDelay,
         play,
+        buildHandler,
     };
 }
-
-const customAnimation = animaster()
-    .addMove(1000, {x: 40, y: 40})
-    .addScale(800, 1.3)
-    .addMove(200, {x: 80, y: 0})
-    .addScale(800, 1)
-    .addMove(200, {x: 40, y: -40})
-    .addScale(800, 0.7)
-    .addMove(200, {x: 0, y: 0})
-    .addScale(800, 1);
-const customAnimationNew = animaster()
-    .addMove(1000, {x: 40, y: 40})
-    .addScale(800, 1.3)
-    .addMove(200, {x: 80, y: 0})
-    .addScale(800, 1)
-    .addMove(200, {x: 40, y: -40})
-    .addScale(800, 0.7)
-    .addMove(200, {x: 0, y: 0})
-    .addScale(800, 1);
-// customAnimation.play(document.getElementById('customAnimationBlock'));
-// customAnimationNew.play(document.getElementById('customAnimationBlock1'));
